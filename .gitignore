@@ -31,7 +31,7 @@ dist-ssr
 *.sw?
 
 # Backend (if exists)
-./backend
+backend/
 
 # OS files
 Thumbs.db
