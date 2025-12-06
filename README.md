@@ -207,17 +207,33 @@ Regular users authenticate via the backend API using their user ID and password.
 
 The application connects to a backend API. Ensure the backend server is running and accessible at the URL specified in `VITE_BASE_URL`.
 
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_BASE_URL=http://localhost:5000
+```
+
+**Important**: 
+- All Vite environment variables must be prefixed with `VITE_`
+- Environment variables are embedded at build time
+- Never commit sensitive data in environment variables
+- See `.env.example` for template
+
 ### API Endpoint Patterns
 - Authentication: `POST /login`
 - Form Submission: `POST /{department}/{userId}/{formPart}`
 - Status Check: `GET /{department}/{userId}/get-status`
 - Document Generation: `GET /{department}/{userId}/generate-doc`
 
-See [SYSTEM-ARCHITECTURE.md](./SYSTEM-ARCHITECTURE.md) for detailed API documentation.
+For complete API documentation, see [API-DOCUMENTATION.md](./API-DOCUMENTATION.md).
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+For detailed troubleshooting information, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+
+### Quick Fixes
 
 **Issue**: Cannot connect to backend API
 - **Solution**: Verify `VITE_BASE_URL` in `.env` matches your backend server URL
@@ -235,6 +251,8 @@ See [SYSTEM-ARCHITECTURE.md](./SYSTEM-ARCHITECTURE.md) for detailed API document
 - [Installation Guide](./INSTALLATION.md) - Detailed setup instructions
 - [Deployment Guide](./DEPLOYMENT.md) - Production deployment options
 - [System Architecture](./SYSTEM-ARCHITECTURE.md) - Technical architecture details
+- [API Documentation](./API-DOCUMENTATION.md) - Complete API endpoint reference
+- [Troubleshooting Guide](./TROUBLESHOOTING.md) - Common issues and solutions
 - [Project Notes](./PROJECT-NOTES.md) - Development notes and recommendations
 
 ## 🤝 Contributing

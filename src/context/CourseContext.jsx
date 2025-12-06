@@ -16,7 +16,7 @@ export const CourseProvider = ({ children }) => {
 
       try {
         const response = await fetch(
-          `${process.env.BASE_URL}/${userData.dept}/${userData._id}/A`
+          `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/A`
         );
         
         if (!response.ok) {

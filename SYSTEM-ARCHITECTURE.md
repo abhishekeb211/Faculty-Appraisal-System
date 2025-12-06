@@ -78,6 +78,9 @@ AppContent (Main Application)
 - Handles login/logout
 - Stores user data in localStorage
 - Provides authentication context to all components
+- **Provides**: `isAuthenticated`, `userData`, `userRole`, `login()`, `logout()`
+- **State Source**: localStorage `userData` key
+- **Updates**: On login/logout actions
 
 #### FormProvider (`src/context/FormContext.jsx`)
 - Manages form data state
@@ -126,19 +129,54 @@ Redirect to Dashboard
 ```
 User Fills Form
     ↓
-Form Data Stored in Context
-    ↓
+Form Data Stored in Component State
+    ↓ (optional: also in FormContext)
 User Clicks Submit
     ↓
+Validate Form Data (client-side)
+    ↓
+Show Loading State
+    ↓
 POST /{department}/{userId}/{formPart}
+    ├── Headers: Content-Type: application/json
+    └── Body: JSON.stringify(formData)
     ↓
 Backend Validates & Stores
     ↓
-Response with Status
-    ↓
-Update UI (Success/Error)
-    ↓
-Redirect to Status Page
+Response Received
+    ├── Success (200/201)
+    │   ├── Show Success Toast
+    │   ├── Update Local State
+    │   └── Redirect to Status Page
+    └── Error (400/500)
+        ├── Show Error Toast
+        ├── Display Error Message
+        └── Keep User on Form
+```
+
+### Detailed Form Submission Sequence
+
+```
+1. Component Mounts
+   ├── useEffect triggers
+   ├── Fetch existing data: GET /{dept}/{userId}/{formPart}
+   └── Populate form fields
+
+2. User Interaction
+   ├── Input changes update component state
+   ├── Validation on blur/change
+   └── Real-time feedback
+
+3. Form Submission
+   ├── Prevent default form submission
+   ├── Validate all required fields
+   ├── Show loading spinner
+   ├── POST /{dept}/{userId}/{formPart}
+   │   └── Body: Complete form data object
+   ├── Handle response
+   │   ├── Success: Toast + Redirect
+   │   └── Error: Toast + Stay on form
+   └── Update submission status
 ```
 
 ### Data Fetching Flow
@@ -146,15 +184,52 @@ Redirect to Status Page
 ```
 Component Mounts
     ↓
+useEffect Hook Triggers
+    ↓
 Check localStorage for cached data
-    ↓
-If not cached, fetch from API
-    ↓
-GET /{endpoint}
-    ↓
-Update Component State
-    ↓
-Render UI with Data
+    ├── If cached & valid
+    │   ├── Use cached data
+    │   └── Render UI immediately
+    └── If not cached or expired
+        ├── Show Loading State
+        ├── GET /{endpoint}
+        │   ├── Headers: (if auth required)
+        │   └── Query params: (if applicable)
+        ├── Handle Response
+        │   ├── Success
+        │   │   ├── Parse JSON
+        │   │   ├── Update Component State
+        │   │   ├── Cache in localStorage (optional)
+        │   │   └── Render UI
+        │   └── Error
+        │       ├── Show Error Message
+        │       ├── Use fallback data (if available)
+        │       └── Log error for debugging
+        └── Cleanup (if component unmounts)
+```
+
+### API Request Lifecycle
+
+```
+Request Initiation
+    ├── Component calls fetch/axios
+    ├── Construct URL: VITE_BASE_URL + endpoint
+    └── Prepare request options
+        ├── Method: GET/POST/PUT/DELETE
+        ├── Headers: Content-Type, etc.
+        └── Body: JSON.stringify(data) for POST/PUT
+
+Network Layer
+    ├── Browser sends HTTP request
+    ├── Backend receives request
+    ├── Backend processes request
+    └── Backend sends response
+
+Response Handling
+    ├── Check response.ok
+    ├── Parse response.json()
+    ├── Update component state
+    └── Trigger UI re-render
 ```
 
 ## Component Hierarchy
@@ -162,21 +237,104 @@ Render UI with Data
 ### Main Application Structure
 
 ```
-App
-├── AuthProvider
-│   └── Router
+App (src/App.jsx)
+├── AuthProvider (src/context/AuthContext.jsx)
+│   └── Router (react-router-dom)
 │       └── AppContent
-│           ├── Sidebar (conditional)
-│           ├── Navbar (conditional)
-│           └── Routes
-│               ├── LoginPage
-│               ├── Dashboard
-│               ├── Forms (A-E)
-│               ├── Admin Routes
-│               ├── HOD Routes
-│               ├── Dean Routes
-│               ├── Director Routes
-│               └── External Routes
+│           ├── FormProvider (src/context/FormContext.jsx)
+│           │   └── Main Layout
+│           │       ├── Sidebar (conditional, src/components/layout/Sidebar.jsx)
+│           │       │   └── Role-based navigation items
+│           │       ├── Navbar (conditional, src/components/layout/Navbar.jsx)
+│           │       │   └── User info, logout, status
+│           │       └── Routes (Protected & Public)
+│           │           ├── Public Routes
+│           │           │   ├── /login → LoginPage
+│           │           │   └── /admin/* → Admin routes
+│           │           └── Protected Routes
+│           │               ├── /dashboard → Dashboard
+│           │               ├── /profile → Profile
+│           │               ├── /teaching → TempTeachingPerfomance (Part A)
+│           │               ├── /research → Research (Part B)
+│           │               ├── /selfdevelopment → SelfDevelopment (Part C)
+│           │               ├── /portfolio → Portfolio (Part D)
+│           │               ├── /extra → Extra (Part E)
+│           │               ├── /review → Review
+│           │               ├── /submission-status → SubmissionStatus
+│           │               └── Role-specific routes
+│           │                   ├── HOD routes
+│           │                   ├── Dean routes
+│           │                   ├── Director routes
+│           │                   └── External routes
+│           └── SplashScreen (on initial load)
+```
+
+### Detailed Component Relationships
+
+#### Authentication Flow Components
+
+```
+LoginPage
+    ↓ (on success)
+    ├── Calls AuthContext.login(userData)
+    ├── Stores in localStorage
+    └── Navigates to /dashboard
+
+AuthContext
+    ├── Provides: isAuthenticated, userData, userRole
+    ├── Consumed by: All protected routes
+    └── Updates: On login/logout
+
+ProtectedRoute
+    ├── Checks: isAuthenticated from AuthContext
+    ├── Redirects: /login if not authenticated
+    └── Renders: children if authenticated
+```
+
+#### Form Submission Components
+
+```
+Form Component (e.g., Research.jsx)
+    ├── Uses: FormContext (optional)
+    ├── Fetches: Existing data from API (GET)
+    ├── Updates: Local component state
+    ├── Submits: Form data to API (POST)
+    └── Updates: SubmissionStatus via API
+
+FormContext
+    ├── Manages: Form data state across components
+    ├── Provides: formData, updateFormData, getSectionProgress
+    └── Used by: Multiple form components (optional)
+
+SubmissionStatus
+    ├── Fetches: Status from API (GET /get-status)
+    └── Displays: Current submission status for all parts
+```
+
+#### Role-Based Component Flow
+
+```
+Sidebar
+    ├── Reads: userData from localStorage
+    ├── Determines: userRole (role or desg)
+    ├── Renders: Role-specific menu items
+    └── Navigation: React Router Links
+
+Role-Specific Components
+    ├── HOD Components
+    │   ├── FacultyFormsList → Lists department faculty
+    │   ├── HODverify → Verifies faculty forms
+    │   └── FinalMarks → Calculates final marks
+    ├── Dean Components
+    │   ├── AssociateDeansList → Lists associate deans
+    │   └── DeanEvaluationForm → Evaluates faculty
+    ├── Director Components
+    │   ├── HODForms → Reviews HOD forms
+    │   ├── DeanForms → Reviews Dean forms
+    │   └── FacultyForms → Reviews faculty forms
+    └── External Components
+        ├── ExternalDashboard → Lists assignments
+        └── EvaluateFacultyPage → Evaluates assigned faculty
 ```
 
 ### Form Components Structure
@@ -230,9 +388,23 @@ Role Components/
 ```javascript
 AuthContext provides:
 - isAuthenticated: boolean
+  - Derived from: localStorage.getItem('userData')
+  - Updates: On login/logout
 - userData: object (from localStorage)
-- login: function
-- logout: function
+  - Structure: { _id, name, email, role, dept, desg, ... }
+  - Source: localStorage.getItem('userData')
+  - Updates: On login, cleared on logout
+- userRole: string | null
+  - Derived from: userData.role || userData.desg?.toLowerCase()
+  - Used for: Role-based rendering and routing
+- login: function(userData)
+  - Stores: userData in localStorage
+  - Updates: isAuthenticated state
+  - Triggers: Component re-renders
+- logout: function()
+  - Removes: userData from localStorage
+  - Updates: isAuthenticated state
+  - Redirects: To login page
 ```
 
 #### 2. Form Context
@@ -650,7 +822,196 @@ try {
 - Toast notifications for user feedback
 - Console logging for debugging
 
+## Component Interaction Patterns
+
+### Parent-Child Communication
+
+```
+Parent Component
+    ├── Passes: Props (data, callbacks)
+    ├── Manages: State for child components
+    └── Receives: Events from children
+
+Child Component
+    ├── Receives: Props from parent
+    ├── Calls: Callback functions (onClick, onChange)
+    └── Updates: Parent state via callbacks
+```
+
+### Context-Based Communication
+
+```
+Context Provider (e.g., AuthProvider)
+    ├── Wraps: Application tree
+    ├── Manages: Global state
+    └── Provides: Context value
+
+Consumer Components
+    ├── Use: useContext hook
+    ├── Access: Context value
+    └── Re-render: When context updates
+```
+
+### Cross-Component Communication
+
+```
+Component A
+    ├── Updates: Context/Global State
+    └── Triggers: Re-render of consumers
+
+Component B
+    ├── Subscribes: To same context
+    └── Receives: Updated state automatically
+```
+
+## Data Flow Patterns
+
+### Unidirectional Data Flow
+
+```
+User Action
+    ↓
+Event Handler
+    ↓
+State Update (setState/Context)
+    ↓
+Component Re-render
+    ↓
+UI Update
+```
+
+### API Data Flow
+
+```
+User Action
+    ↓
+API Call (fetch/axios)
+    ↓
+Backend Processing
+    ↓
+Response Received
+    ↓
+State Update
+    ↓
+UI Update
+```
+
+### Form Data Flow
+
+```
+User Input
+    ↓
+onChange Handler
+    ↓
+Local State Update
+    ↓
+Form Validation
+    ↓
+Submit Handler
+    ↓
+API Call
+    ↓
+Success/Error Handling
+    ↓
+State Update
+    ↓
+UI Feedback
+```
+
+## File Organization Patterns
+
+### Component Structure
+
+```
+src/components/
+├── layout/           # Shared layout components
+│   ├── Navbar.jsx
+│   └── Sidebar.jsx
+├── forms/            # Form components (A-E)
+│   ├── Dashboard.jsx
+│   ├── TempTeachingPerfomance.jsx
+│   └── ...
+├── adminpage/       # Admin-specific components
+├── HOD/             # HOD-specific components
+├── Dean/            # Dean-specific components
+├── Director/        # Director-specific components
+├── External/        # External evaluator components
+└── Verification/    # Verification team components
+```
+
+### Context Organization
+
+```
+src/context/
+├── AuthContext.jsx      # Authentication state
+├── FormContext.jsx       # Form data state
+└── CourseContext.jsx    # Course data state
+```
+
+### Asset Organization
+
+```
+src/assets/
+├── logo.png          # Application logo
+└── react.svg          # React logo
+
+public/
+└── vite.svg          # Vite logo
+```
+
+## Build and Runtime Architecture
+
+### Development Mode
+
+```
+Vite Dev Server
+    ├── Serves: Source files directly
+    ├── Transforms: JSX, TypeScript on-the-fly
+    ├── Hot Module Replacement: Updates without refresh
+    └── Port: 5173 (default)
+```
+
+### Production Build
+
+```
+npm run build
+    ├── Transpiles: JSX to JavaScript
+    ├── Bundles: All code into optimized chunks
+    ├── Minifies: JavaScript and CSS
+    ├── Tree-shakes: Removes unused code
+    └── Output: dist/ directory
+        ├── index.html
+        ├── assets/
+        │   ├── index-[hash].js
+        │   └── index-[hash].css
+        └── Other assets
+```
+
+### Runtime Execution
+
+```
+Browser loads index.html
+    ↓
+Loads JavaScript bundle
+    ↓
+React initializes
+    ↓
+App component renders
+    ↓
+Context providers initialize
+    ↓
+Router determines initial route
+    ↓
+Component tree renders
+    ↓
+API calls made (if needed)
+    ↓
+UI updates with data
+```
+
 ---
 
-For deployment information, see [DEPLOYMENT.md](./DEPLOYMENT.md). For installation, see [INSTALLATION.md](./INSTALLATION.md).
+For deployment information, see [DEPLOYMENT.md](./DEPLOYMENT.md).  
+For installation, see [INSTALLATION.md](./INSTALLATION.md).  
+For API details, see [API-DOCUMENTATION.md](./API-DOCUMENTATION.md).
 

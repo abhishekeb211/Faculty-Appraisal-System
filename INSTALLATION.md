@@ -268,24 +268,130 @@ After running `npm run dev`, you should see:
   ➜  Network: use --host to expose
 ```
 
+**If you see errors:**
+- Check Node.js version: `node --version` (should be 18+)
+- Verify all dependencies installed: `npm list --depth=0`
+- Check for port conflicts
+
 ### Step 2: Access the Application
 
-1. Open your web browser
+1. Open your web browser (Chrome, Firefox, Edge, or Safari)
 2. Navigate to `http://localhost:5173`
-3. You should see the splash screen, then the login page
+3. You should see:
+   - Splash screen (for ~3.5 seconds)
+   - Login page
 
-### Step 3: Test Login
+**If login page doesn't appear:**
+- Check browser console (F12) for errors
+- Verify development server is running
+- Try hard refresh: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
 
-1. Use admin credentials:
+### Step 3: Verify Environment Variables
+
+1. Check that `.env` file exists in project root
+2. Verify `VITE_BASE_URL` is set:
+   ```bash
+   # Windows PowerShell
+   Get-Content .env
+   
+   # Linux/macOS
+   cat .env
+   ```
+3. Should contain: `VITE_BASE_URL=http://localhost:5000` (or your backend URL)
+
+**Note**: After changing `.env`, restart the development server.
+
+### Step 4: Test Login
+
+1. **Admin Login Test:**
    - Username: `admin2025`
    - Password: `admin2025`
-2. You should be redirected to the admin panel
+   - Should redirect to `/admin` route
 
-### Step 4: Verify API Connection
+2. **Regular User Login Test:**
+   - Use valid user credentials from backend
+   - Should redirect to `/dashboard`
+   - Check browser console for any errors
 
-1. Ensure your backend API server is running
-2. Check browser console (F12) for any API connection errors
-3. Verify `VITE_BASE_URL` matches your backend server URL
+**If login fails:**
+- Verify backend API is running
+- Check `VITE_BASE_URL` in `.env` matches backend URL
+- Check browser Network tab for failed requests
+- Verify CORS is configured on backend
+
+### Step 5: Verify API Connection
+
+1. **Check Backend Server:**
+   ```bash
+   # Test backend health (adjust URL as needed)
+   curl http://localhost:5000/health
+   # Or open in browser
+   ```
+
+2. **Check Browser Console:**
+   - Open DevTools (F12)
+   - Go to Console tab
+   - Look for API connection errors
+   - Check Network tab for failed requests
+
+3. **Test API Endpoint:**
+   ```javascript
+   // In browser console
+   fetch(`${import.meta.env.VITE_BASE_URL}/users`)
+     .then(r => console.log('API connected:', r.ok))
+     .catch(e => console.error('API error:', e));
+   ```
+
+### Step 6: Verify Component Rendering
+
+1. **After Login:**
+   - Check that sidebar appears (if not external user)
+   - Verify navbar shows user information
+   - Check that dashboard loads correctly
+
+2. **Test Navigation:**
+   - Click sidebar menu items
+   - Verify routes change correctly
+   - Check that components load without errors
+
+### Step 7: Verify Form Functionality
+
+1. Navigate to a form (e.g., `/teaching` for Part A)
+2. Check that form loads existing data (if any)
+3. Try filling out a field
+4. Verify form validation works
+5. Check browser console for errors
+
+### Step 8: Complete Verification Checklist
+
+- [ ] Development server starts without errors
+- [ ] Application loads in browser
+- [ ] Login page appears
+- [ ] Admin login works
+- [ ] Environment variables are set correctly
+- [ ] Backend API is accessible
+- [ ] No CORS errors in console
+- [ ] Components render correctly
+- [ ] Navigation works
+- [ ] Forms load and function
+- [ ] No console errors
+
+### Common Verification Issues
+
+**Issue**: Environment variable not working
+- **Check**: Restart dev server after changing `.env`
+- **Verify**: Variable name starts with `VITE_`
+- **Test**: `console.log(import.meta.env.VITE_BASE_URL)` in component
+
+**Issue**: API connection fails
+- **Check**: Backend server is running
+- **Verify**: `VITE_BASE_URL` matches backend URL exactly
+- **Test**: Open backend URL in browser directly
+
+**Issue**: Components not rendering
+- **Check**: Browser console for React errors
+- **Verify**: All dependencies installed correctly
+- **Test**: Clear browser cache and hard refresh
 
 ## Troubleshooting
 
@@ -408,13 +514,64 @@ npm run lint -- --fix
 # Review error messages and fix accordingly
 ```
 
+## Post-Installation Configuration
+
+### Optional: Configure Development Port
+
+If port 5173 is in use, you can change it:
+
+**Option 1: Command line**
+```bash
+npm run dev -- --port 3000
+```
+
+**Option 2: Update vite.config.js**
+```javascript
+export default defineConfig({
+  server: {
+    port: 3000
+  },
+  // ... other config
+});
+```
+
+### Optional: Enable Network Access
+
+To access from other devices on your network:
+
+```bash
+npm run dev -- --host
+```
+
+This will expose the dev server on your local network IP.
+
+### Optional: Configure Proxy
+
+If you need to proxy API requests, update `vite.config.js`:
+
+```javascript
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
+});
+```
+
 ## Next Steps
 
 After successful installation:
 
 1. **Read the [Deployment Guide](./DEPLOYMENT.md)** for production setup
 2. **Review [System Architecture](./SYSTEM-ARCHITECTURE.md)** for technical details
-3. **Check [Project Notes](./PROJECT-NOTES.md)** for development guidelines
+3. **Check [API Documentation](./API-DOCUMENTATION.md)** for endpoint reference
+4. **Read [Troubleshooting Guide](./TROUBLESHOOTING.md)** for common issues
+5. **Review [Project Notes](./PROJECT-NOTES.md)** for development guidelines
 
 ## Getting Help
 
