@@ -82,6 +82,41 @@ const formService = {
     const response = await apiClient.post(`/${department}/send-to-director`);
     return response.data;
   },
+
+  /**
+   * Get form data for a user (all parts)
+   */
+  async getUserFormData(department: string, userId: string): Promise<any> {
+    const response = await apiClient.get(`/${department}/${userId}`);
+    return response.data;
+  },
+
+  /**
+   * Verify authority (HOD verification)
+   */
+  async verifyAuthority(
+    department: string,
+    facultyId: string
+  ): Promise<FormSubmissionResponse> {
+    const response = await apiClient.post(`/${department}/${facultyId}/verify-authority`);
+    return response.data;
+  },
+
+  /**
+   * Get HOD mark given status
+   */
+  async getHODMarkStatus(department: string, userId: string): Promise<{ given: boolean }> {
+    const response = await apiClient.get(`/${department}/${userId}/hod-mark-given`);
+    return response.data;
+  },
+
+  /**
+   * Get portfolio given status
+   */
+  async getPortfolioStatus(department: string, userId: string): Promise<{ given: boolean }> {
+    const response = await apiClient.get(`/${department}/${userId}/portfolio-given`);
+    return response.data;
+  },
 };
 
 export default formService;

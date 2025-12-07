@@ -26,19 +26,10 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
 
     setStatusLoading(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/get-status`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setUserStatus(data.status);
-      }
+      // Use centralized formService
+      const { formService } = await import("../../services/api");
+      const statusData = await formService.getFormStatus(department, userId);
+      setUserStatus(statusData.status);
     } catch (error) {
       console.error("Error fetching user status:", error);
     } finally {

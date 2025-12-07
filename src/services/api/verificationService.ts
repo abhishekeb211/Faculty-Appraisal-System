@@ -48,6 +48,25 @@ const verificationService = {
     const response = await apiClient.post(`/${department}/${facultyId}/${part}`, data);
     return response.data;
   },
+
+  /**
+   * Get verification committee for a department
+   */
+  async getVerificationCommittee(department: string): Promise<any[]> {
+    const response = await apiClient.get(`/${department}/verification-committee`);
+    return response.data;
+  },
+
+  /**
+   * Add faculty to verification committee
+   */
+  async addFacultyToVerificationCommittee(
+    department: string,
+    data: { facultyIds: string[] }
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post(`/${department}/verification-committee/addfaculties`, data);
+    return response.data;
+  },
 };
 
 export default verificationService;

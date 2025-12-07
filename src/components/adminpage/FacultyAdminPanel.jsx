@@ -65,9 +65,9 @@ const FacultyAdminPanel = () => {
   const fetchFaculties = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
-      if (!response.ok) throw new Error('Failed to fetch faculty data');
-      const data = await response.json();
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      const data = await userService.getAllUsers();
       setFaculties(data);
     } catch (err) {
       setError('Error loading faculty data: ' + err.message);
@@ -88,29 +88,28 @@ const FacultyAdminPanel = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      
       if (isEditing) {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${selectedFaculty._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            role: formData.role,
-            dept: formData.dept,
-            mail: formData.mail,
-            mob: formData.mob
-          })
+        await userService.updateUser(selectedFaculty._id, {
+          name: formData.name,
+          role: formData.role,
+          dept: formData.dept,
+          email: formData.mail,
+          mob: formData.mob
         });
-
-        if (!response.ok) throw new Error('Failed to update faculty member');
         setSuccessMessage('Faculty member updated successfully');
       } else {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+        await userService.createUser({
+          _id: formData._id,
+          name: formData.name,
+          email: formData.mail,
+          password: formData.password || 'defaultPassword', // Should be handled properly
+          role: formData.role,
+          dept: formData.dept,
+          mob: formData.mob
         });
-
-        if (!response.ok) throw new Error('Failed to add faculty member');
         setSuccessMessage('Faculty member added successfully');
       }
 
@@ -118,7 +117,7 @@ const FacultyAdminPanel = () => {
       resetForm();
       setShowSuccessDialog(true);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to save faculty member');
     } finally {
       setLoading(false);
     }
@@ -140,11 +139,9 @@ const FacultyAdminPanel = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${facultyToDelete._id}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) throw new Error('Failed to delete faculty member');
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      await userService.deleteUser(facultyToDelete._id);
       
       setSuccessMessage('Faculty member deleted successfully');
       await fetchFaculties();

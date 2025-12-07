@@ -58,9 +58,9 @@ const FacultyList = () => {
   const fetchFaculties = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
-      if (!response.ok) throw new Error("Failed to fetch faculty data");
-      const data = await response.json();
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      const data = await userService.getAllUsers();
       setFaculties(data);
     } catch (err) {
       setError("Error loading faculty data: " + err.message);
@@ -72,14 +72,9 @@ const FacultyList = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://10.10.1.18:5000/users/${facultyToDelete._id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to delete faculty member");
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      await userService.deleteUser(facultyToDelete._id);
 
       setSuccessMessage("Faculty member deleted successfully");
       await fetchFaculties();
@@ -87,7 +82,7 @@ const FacultyList = () => {
       setFacultyToDelete(null);
       setShowSuccessDialog(true);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to delete faculty member");
     } finally {
       setLoading(false);
     }
@@ -104,18 +99,9 @@ const FacultyList = () => {
         desg: editFormData.desg
       };
       
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/users/${facultyToEdit._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSubmit),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to update faculty member");
+      // Use centralized userService
+      const { userService } = await import("../../services/api");
+      await userService.updateUser(facultyToEdit._id, dataToSubmit);
 
       setSuccessMessage("Faculty member updated successfully");
       await fetchFaculties();

@@ -19,13 +19,60 @@ const getStoredUserData = (): Record<string, any> | null => {
   }
 };
 
+/**
+ * Checks if a JWT token is expired
+ * @param token - JWT token string
+ * @returns true if token is expired or invalid, false otherwise
+ */
+const isTokenExpired = (token: string): boolean => {
+  try {
+    // JWT tokens have 3 parts separated by dots: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return true; // Invalid token format
+    }
+
+    // Decode the payload (second part)
+    const payload = JSON.parse(atob(parts[1]));
+    
+    // Check if token has expiration claim
+    if (!payload.exp) {
+      return false; // No expiration claim, assume valid
+    }
+
+    // Check if token is expired (exp is in seconds, Date.now() is in milliseconds)
+    return payload.exp * 1000 < Date.now();
+  } catch (error) {
+    console.error('Error checking token expiration:', error);
+    return true; // If we can't parse, assume expired
+  }
+};
+
+/**
+ * Clears user data and redirects to login
+ */
+const clearSession = (): void => {
+  localStorage.removeItem('userData');
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
+
 // Request interceptor
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add auth token if available
+    // Add auth token if available and valid
     const userData = getStoredUserData();
     const token = userData?.token;
+    
     if (token) {
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        // Token expired, clear session and redirect
+        clearSession();
+        return Promise.reject(new Error('Token expired')) as any;
+      }
+
       config.headers = {
         ...config.headers,
         Authorization: `Bearer ${token}`,
@@ -52,12 +99,9 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - token expired or invalid
     if (error.response.status === 401) {
-      localStorage.removeItem('userData');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      clearSession();
       return Promise.reject(error);
     }
 

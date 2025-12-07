@@ -602,19 +602,17 @@ const Research = () => {
         const userData = JSON.parse(localStorage.getItem("userData"));
         const department = userData.dept;
         const user_id = userData._id;
-        const response = await fetch(
-          `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("data is ", data);
-          if (data) {
-            const { newFormData, newVerifiedScores } =
-              transformApiResponse(data);
-            setFormData(newFormData);
-            setVerifiedScores(newVerifiedScores);
-          }
+        
+        // Use centralized formService
+        const { formService } = await import("../../services/api");
+        const data = await formService.getFormData(department, user_id, 'B');
+        
+        console.log("data is ", data);
+        if (data) {
+          const { newFormData, newVerifiedScores } =
+            transformApiResponse(data);
+          setFormData(newFormData);
+          setVerifiedScores(newVerifiedScores);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -634,16 +632,10 @@ const fetchFormStatus = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
     if (!userData?.dept || !userData?._id) return;
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/get-status`
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      setFormStatus(data.status);
-    } else {
-      throw new Error("Failed to fetch status");
-    }
+    // Use centralized formService
+    const { formService } = await import("../../services/api");
+    const statusData = await formService.getFormStatus(userData.dept, userData._id);
+    setFormStatus(statusData.status);
   } catch (error) {
     console.error("Error fetching form status:", error);
   }
@@ -1050,34 +1042,23 @@ const handleSubmitClick = () => {
     console.log("Payload is ", payload);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (response.ok) {
-        navigate("/submission-status", {
-          state: {
-            status: "success",
-            formName: "Research and Development Form",
-            message: "Your research details have been successfully submitted!",
-          },
-        });
-      } else {
-        throw new Error("Failed to submit data");
-      }
+      // Use centralized formService
+      const { formService } = await import("../../services/api");
+      await formService.submitFormData(department, user_id, 'B', payload);
+      
+      navigate("/submission-status", {
+        state: {
+          status: "success",
+          formName: "Research and Development Form",
+          message: "Your research details have been successfully submitted!",
+        },
+      });
     } catch (error) {
       navigate("/submission-status", {
         state: {
           status: "error",
           formName: "Research and Development Form",
-          error: error.message,
+          error: error.message || "Failed to submit data",
         },
       });
     } finally {

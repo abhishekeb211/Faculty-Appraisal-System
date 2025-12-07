@@ -93,15 +93,17 @@ This document contains development notes, design decisions, known issues, optimi
 
 ### 1. Hardcoded API URLs
 
-**Issue**: Some components use hardcoded `localhost:5000` instead of environment variable
+**Issue**: Some test/development components use hardcoded `localhost:5000` instead of environment variable
 
 **Files Affected**:
-- `src/components/adminpage/test2.jsx`
-- `src/components/verfication_team/VerificationForm.jsx`
+- `src/components/adminpage/test.jsx` (16 instances of hardcoded URLs)
+- `src/components/adminpage/test2.jsx` (1 instance of hardcoded URL)
 
-**Impact**: Medium - Breaks in production if not using localhost
+**Impact**: Medium - These are test files, but should still use environment variables for consistency
 
-**Recommendation**: Replace all hardcoded URLs with `import.meta.env.VITE_BASE_URL`
+**Status**: ⚠️ Needs Fix - Replace all hardcoded URLs with `import.meta.env.VITE_BASE_URL`
+
+**Note**: Most production components correctly use `import.meta.env.VITE_BASE_URL`. Only test files have hardcoded URLs.
 
 ### 2. Missing Environment Variable Validation
 
@@ -157,13 +159,20 @@ try {
 
 **Recommendation**: Remove or move to proper test directory
 
-### 6. Missing TypeScript
+### 6. Mixed TypeScript/JavaScript
 
-**Issue**: Project uses JavaScript instead of TypeScript
+**Issue**: Project uses both TypeScript and JavaScript files
 
-**Impact**: Medium - No type safety, easier to introduce bugs
+**Current State**:
+- TypeScript: Core services, contexts, types, some components
+- JavaScript: Most component files (.jsx)
 
-**Recommendation**: Consider migrating to TypeScript for better type safety
+**Impact**: Medium - Inconsistent type safety, some files benefit from TypeScript while others don't
+
+**Recommendation**: 
+- Gradually migrate .jsx files to .tsx for better type safety
+- Or add PropTypes to JavaScript components as interim solution
+- Priority: Migrate frequently modified components first
 
 ### 7. No Form Validation Library
 
@@ -179,46 +188,36 @@ try {
 
 **Impact**: Low - Setup confusion for new developers
 
-**Status**: ✅ Fixed - Created `.env.example`
+**Status**: ✅ Fixed - `.env.example` template created (Note: File may be gitignored, but template content documented in INSTALLATION.md)
 
 ## Missing Components
 
 ### 1. Error Boundary Component
 
-**Missing**: Global error boundary for React error handling
+**Status**: ✅ Implemented - Error boundary exists at `src/components/ErrorBoundary.tsx`
 
-**Recommendation**: Implement error boundary:
-```javascript
-class ErrorBoundary extends React.Component {
-  // Error boundary implementation
-}
-```
+**Note**: Error boundary is already implemented and used in App.tsx. ErrorFallback component also exists for error display.
 
 ### 2. Loading Component
 
-**Missing**: Reusable loading spinner/component
+**Status**: ✅ Implemented - Loading components exist:
+- `src/components/common/LoadingSpinner.tsx`
+- `src/components/common/RouteLoader.tsx`
 
-**Status**: Partial - Some components use `react-spinners`
-
-**Recommendation**: Create unified loading component
+**Note**: Reusable loading components are available. Some components may still need to adopt them consistently.
 
 ### 3. API Service Layer
 
-**Missing**: Centralized API service
+**Status**: ✅ Implemented - Centralized API service layer exists:
+- `src/services/api/client.ts` - Axios client with interceptors
+- `src/services/api/authService.ts` - Authentication services
+- `src/services/api/formService.ts` - Form submission services
+- `src/services/api/userService.ts` - User management services
+- `src/services/api/verificationService.ts` - Verification services
+- `src/services/api/evaluationService.ts` - Evaluation services
+- `src/services/api/index.ts` - Centralized exports
 
-**Impact**: High - Code duplication, inconsistent error handling
-
-**Recommendation**: Create API service:
-```javascript
-// services/api.js
-export const api = {
-  get: (endpoint) => fetch(`${BASE_URL}${endpoint}`),
-  post: (endpoint, data) => fetch(`${BASE_URL}${endpoint}`, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  })
-};
-```
+**Note**: Well-structured API service layer with TypeScript types. Some components still use direct fetch calls instead of services - consider migrating for consistency.
 
 ### 4. Constants File
 
@@ -618,28 +617,30 @@ export const handlers = [
 
 #### Remaining Recommendations
 
-1. **Test Files Cleanup**
+1. **Test Files Cleanup** ⚠️ High Priority
    - Remove or relocate test files from component directories:
-     - `src/components/adminpage/test.jsx`
-     - `src/components/adminpage/test2.jsx`
+     - `src/components/adminpage/test.jsx` (contains hardcoded URLs)
+     - `src/components/adminpage/test2.jsx` (contains hardcoded URLs)
      - `src/components/verfication_team/test.jsx`
+   - These appear to be development/test files that should be moved to `__tests__` directory or removed
 
-2. **Error Boundary Implementation**
-   - Add React Error Boundary component for better error handling
-   - Catch and display errors gracefully
+2. **API Service Migration** ⚠️ Medium Priority
+   - Many components use direct `fetch()` calls instead of centralized API services
+   - Migrate components to use `apiClient` from `src/services/api/client.ts`
+   - Benefits: Consistent error handling, automatic token injection, retry logic
 
-3. **API Service Layer**
-   - Create centralized API service to reduce code duplication
-   - Implement consistent error handling
-   - Add request/response interceptors
+3. **Type Safety Enhancement** ⚠️ Medium Priority
+   - Gradually migrate .jsx files to .tsx
+   - Add PropTypes to remaining JavaScript components
+   - Priority: Frequently modified components first
 
-4. **Type Safety**
-   - Consider migrating to TypeScript for better type safety
-   - Or add PropTypes for runtime type checking
+4. **Code Splitting** ✅ Partially Implemented
+   - Lazy loading already implemented in App.tsx for route components
+   - Consider additional code splitting for large components
 
-5. **Code Splitting**
-   - Implement lazy loading for route components
-   - Reduce initial bundle size
+5. **Environment Variable Validation** ⚠️ Low Priority
+   - Add startup validation for required environment variables
+   - Show user-friendly error if VITE_BASE_URL is missing
 
 ## Documentation Improvements
 
@@ -695,15 +696,136 @@ export const handlers = [
 
 ### Technical Debt
 
-1. Test files in component directories (should be in test directory)
-2. Some hardcoded values that could be constants
-3. Missing error boundaries
-4. No centralized API service layer
-5. Limited input validation on client side
+1. **Test files in component directories** - Should be moved to `__tests__` directory or removed
+2. **Hardcoded URLs in test files** - test.jsx and test2.jsx need to use environment variables
+3. **Mixed API patterns** - Some components use centralized services, others use direct fetch calls
+4. **Mixed TypeScript/JavaScript** - Inconsistent type safety across codebase
+5. **Limited input validation** - Client-side validation could be enhanced with a validation library
+6. **Large component files** - Some components exceed 1000 lines and could be split
+7. **Unused dependencies** - Review @react-three/drei, @react-three/fiber, three, gsap usage (may be for future features)
 
 ---
 
-**Last Updated**: Current Date  
+## Project Structure Analysis (Latest Review)
+
+### Complete Folder Structure
+
+```
+Faculty-Appraisal-System/
+├── public/
+│   └── vite.svg
+├── src/
+│   ├── __tests__/                    # Test files (proper location)
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── services/
+│   ├── assets/                       # Static assets
+│   │   ├── logo.png
+│   │   └── react.svg
+│   ├── components/                  # React components
+│   │   ├── adminpage/               # Admin panel components
+│   │   │   ├── test.jsx            # ⚠️ Test file (should be moved)
+│   │   │   └── test2.jsx           # ⚠️ Test file (should be moved)
+│   │   ├── CollegeExternal/        # College external evaluator
+│   │   ├── common/                  # Shared components
+│   │   │   ├── LoadingSpinner.tsx
+│   │   │   └── RouteLoader.tsx
+│   │   ├── Dean/                    # Dean-specific components
+│   │   ├── Director/                # Director-specific components
+│   │   ├── External/                # External evaluator components
+│   │   ├── forms/                   # Form components (Parts A-E)
+│   │   ├── HOD/                     # HOD-specific components
+│   │   ├── layout/                  # Layout components
+│   │   ├── profile/                 # Profile management
+│   │   ├── Verification/            # Verification team components
+│   │   ├── verfication_team/       # Alternative verification (typo in folder name)
+│   │   │   └── test.jsx            # ⚠️ Test file (should be moved)
+│   │   ├── ErrorBoundary.tsx        # ✅ Error boundary
+│   │   ├── ErrorFallback.tsx        # ✅ Error fallback UI
+│   │   ├── LoginPage.jsx
+│   │   ├── ResetPassword.jsx
+│   │   └── SplashScreen.jsx
+│   ├── context/                     # React Context providers
+│   │   ├── AuthContext.tsx         # ✅ Authentication state
+│   │   ├── FormContext.tsx          # ✅ Form data state
+│   │   └── CourseContext.tsx        # ✅ Course data state
+│   ├── hooks/                       # Custom React hooks
+│   │   └── useErrorHandler.ts
+│   ├── services/                    # API service layer
+│   │   └── api/
+│   │       ├── client.ts            # ✅ Axios client with interceptors
+│   │       ├── authService.ts       # ✅ Authentication services
+│   │       ├── formService.ts       # ✅ Form services
+│   │       ├── userService.ts       # ✅ User services
+│   │       ├── verificationService.ts
+│   │       ├── evaluationService.ts
+│   │       └── index.ts              # ✅ Centralized exports
+│   ├── types/                       # TypeScript type definitions
+│   │   ├── api.types.ts
+│   │   ├── common.types.ts
+│   │   ├── form.types.ts
+│   │   └── user.types.ts
+│   ├── utils/                       # Utility functions
+│   │   ├── errorHandler.ts
+│   │   └── test-utils.tsx
+│   ├── App.tsx                      # Main application component
+│   ├── main.tsx                     # Application entry point
+│   ├── index.css                    # Global styles
+│   └── vite-env.d.ts                # Vite type definitions
+├── Configuration Files
+│   ├── eslint.config.js
+│   ├── tailwind.config.js           # ⚠️ Empty file
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── vitest.config.ts
+└── Documentation Files
+    ├── README.md
+    ├── INSTALLATION.md
+    ├── DEPLOYMENT.md
+    ├── SYSTEM-ARCHITECTURE.md
+    ├── PROJECT-NOTES.md
+    ├── API-DOCUMENTATION.md
+    ├── TROUBLESHOOTING.md
+    └── CHANGELOG.md
+```
+
+### Files Requiring Attention
+
+1. **Test Files in Wrong Locations**:
+   - `src/components/adminpage/test.jsx` - Contains hardcoded URLs
+   - `src/components/adminpage/test2.jsx` - Contains hardcoded URLs
+   - `src/components/verfication_team/test.jsx`
+
+2. **Empty Configuration File**:
+   - `tailwind.config.js` - Empty file, may need configuration
+
+3. **Typo in Folder Name**:
+   - `verfication_team/` should be `verification_team/` (typo: missing 'i')
+
+### Dependencies Analysis
+
+**Production Dependencies (16)**:
+- React ecosystem: react, react-dom, react-router-dom
+- UI libraries: framer-motion, react-icons, lucide-react, react-hot-toast, react-toastify
+- Styling: @tailwindcss/vite, tailwindcss
+- HTTP: axios
+- 3D/Animation: @react-three/drei, @react-three/fiber, three, gsap (may be unused)
+- Utilities: js-cookie, react-spinners
+
+**Development Dependencies (18)**:
+- Build tools: vite, @vitejs/plugin-react, typescript
+- Linting: eslint, @eslint/js, eslint plugins
+- Testing: vitest, @testing-library/*, jsdom
+- Styling: tailwindcss, postcss, autoprefixer
+- Code quality: prettier
+
+**Potentially Unused Dependencies**:
+- `@react-three/drei`, `@react-three/fiber`, `three` - 3D graphics (not seen in components)
+- `gsap` - Animation library (may be used in SplashScreen)
+- `shadcn-ui` - UI component library (not seen in usage)
+
+**Last Updated**: December 2024  
 **Maintained By**: Development Team
 
 For questions or suggestions, please refer to:

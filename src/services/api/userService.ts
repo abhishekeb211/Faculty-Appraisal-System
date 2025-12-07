@@ -87,6 +87,14 @@ const userService = {
     const response = await apiClient.get<User[]>(`/faculty/${department}`);
     return response.data;
   },
+
+  /**
+   * Update user profile
+   */
+  async updateProfile(data: UpdateUserData): Promise<User> {
+    const response = await apiClient.post<User>('/update-profile', data);
+    return response.data;
+  },
 };
 
 export default userService;

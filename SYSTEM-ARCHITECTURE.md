@@ -43,15 +43,18 @@ This document provides a comprehensive overview of the Faculty Appraisal System'
 
 ### Technology Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **UI Framework** | React 19.0.0 | Component-based UI |
-| **Build Tool** | Vite 6.1.0 | Fast build and dev server |
-| **Routing** | React Router DOM 7.1.5 | Client-side routing |
-| **Styling** | Tailwind CSS 4.0.5 | Utility-first CSS |
-| **State Management** | React Context API | Global state |
-| **HTTP Client** | Axios 1.7.9 | API communication |
-| **Storage** | localStorage | Session persistence |
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **UI Framework** | React | 19.0.0 | Component-based UI |
+| **Language** | TypeScript | 5.5.0 | Type safety |
+| **Build Tool** | Vite | 6.1.0 | Fast build and dev server |
+| **Routing** | React Router DOM | 7.1.5 | Client-side routing |
+| **Styling** | Tailwind CSS | 4.0.5 | Utility-first CSS |
+| **State Management** | React Context API | Built-in | Global state |
+| **HTTP Client** | Axios | 1.7.9 | API communication with interceptors |
+| **Storage** | localStorage | Browser API | Session persistence |
+| **Testing** | Vitest | 2.0.0 | Unit testing framework |
+| **Linting** | ESLint | 9.20.0 | Code quality |
 
 ## System Components
 
@@ -73,7 +76,7 @@ AppContent (Main Application)
 
 ### 2. Core Providers
 
-#### AuthProvider (`src/context/AuthContext.jsx`)
+#### AuthProvider (`src/context/AuthContext.tsx`)
 - Manages authentication state
 - Handles login/logout
 - Stores user data in localStorage
@@ -81,30 +84,66 @@ AppContent (Main Application)
 - **Provides**: `isAuthenticated`, `userData`, `userRole`, `login()`, `logout()`
 - **State Source**: localStorage `userData` key
 - **Updates**: On login/logout actions
+- **Type Safety**: Full TypeScript implementation with User and UserRole types
 
-#### FormProvider (`src/context/FormContext.jsx`)
-- Manages form data state
-- Tracks form progress
+#### FormProvider (`src/context/FormContext.tsx`)
+- Manages form data state across all form parts
+- Tracks form progress and completion
 - Provides form update functions
+- **Provides**: `formData`, `updateFormData()`, `getSectionProgress()`
+- **Type Safety**: Uses FormData types from `src/types/form.types.ts`
 
-#### CourseProvider (`src/context/CourseContext.jsx`)
+#### CourseProvider (`src/context/CourseContext.tsx`)
 - Manages course-related data
-- Fetches course information from API
-- Caches course data
+- Fetches course information from API on initialization
+- Caches course data in localStorage
+- **Provides**: `courses`, `setCourses()`, `isInitialized`
+- **Initialization**: Automatically fetches from Part A form data on mount
 
-### 3. Layout Components
+### 3. API Service Layer
+
+The application uses a centralized API service layer for consistent API communication:
+
+#### API Client (`src/services/api/client.ts`)
+- Axios instance with base configuration
+- Request interceptor: Automatically adds Authorization header from localStorage
+- Response interceptor: Handles errors (401 → logout, 500 → user-friendly messages)
+- Retry logic: Automatic retry for 408/503 errors
+- **Base URL**: Configured via `VITE_BASE_URL` environment variable
+- **Timeout**: 30 seconds
+
+#### Service Modules
+- **authService.ts**: Authentication endpoints (login, OTP, password reset)
+- **formService.ts**: Form submission endpoints (Parts A-E, status, document generation)
+- **userService.ts**: User management endpoints (CRUD operations)
+- **verificationService.ts**: Verification workflow endpoints
+- **evaluationService.ts**: Evaluation and marking endpoints
+
+#### Service Pattern
+```typescript
+// All services follow consistent pattern
+const service = {
+  async methodName(params): Promise<ResponseType> {
+    const response = await apiClient.get/post/put/delete(endpoint, data);
+    return response.data;
+  }
+};
+```
+
+### 4. Layout Components
 
 #### Sidebar (`src/components/layout/Sidebar.jsx`)
-- Navigation menu
-- Role-based menu items
+- Navigation menu with role-based items
 - Collapsible sections
-- Status indicators
+- Status indicators for form completion
+- Responsive design (hidden on mobile, overlay on tablet)
 
 #### Navbar (`src/components/layout/Navbar.jsx`)
 - Top navigation bar
 - User information display
 - Logout functionality
 - Status notifications
+- Menu toggle for mobile
 
 ## Data Flow
 

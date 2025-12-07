@@ -80,18 +80,33 @@ This may take 2-5 minutes depending on your internet connection.
 
 ### Step 5: Configure Environment
 
+Create a `.env` file in the project root:
+
 ```powershell
-# Copy the example environment file
-copy .env.example .env
+# Create .env file (if .env.example exists, copy it)
+if (Test-Path .env.example) {
+    copy .env.example .env
+} else {
+    # Create new .env file
+    @"
+# Backend API Base URL
+VITE_BASE_URL=http://localhost:5000
+"@ | Out-File -FilePath .env -Encoding utf8
+}
 
 # Edit .env file (use Notepad, VS Code, or any text editor)
 notepad .env
 ```
 
 Set the backend API URL:
-```
+```env
+# Backend API Base URL
+# Development: http://localhost:5000
+# Production: https://api.yourdomain.com
 VITE_BASE_URL=http://localhost:5000
 ```
+
+**Note**: If `.env.example` doesn't exist (it may be gitignored), create `.env` manually with the content above.
 
 ### Step 6: Start Development Server
 
@@ -567,11 +582,12 @@ export default defineConfig({
 
 After successful installation:
 
-1. **Read the [Deployment Guide](./DEPLOYMENT.md)** for production setup
-2. **Review [System Architecture](./SYSTEM-ARCHITECTURE.md)** for technical details
-3. **Check [API Documentation](./API-DOCUMENTATION.md)** for endpoint reference
-4. **Read [Troubleshooting Guide](./TROUBLESHOOTING.md)** for common issues
-5. **Review [Project Notes](./PROJECT-NOTES.md)** for development guidelines
+1. **Read the [Local Deployment Review](./LOCAL-DEPLOYMENT-REVIEW.md)** for architecture, design & security assessment
+2. **Read the [Deployment Guide](./DEPLOYMENT.md)** for production setup
+3. **Review [System Architecture](./SYSTEM-ARCHITECTURE.md)** for technical details
+4. **Check [API Documentation](./API-DOCUMENTATION.md)** for endpoint reference
+5. **Read [Troubleshooting Guide](./TROUBLESHOOTING.md)** for common issues
+6. **Review [Project Notes](./PROJECT-NOTES.md)** for development guidelines
 
 ## Getting Help
 
