@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pencil, Plus, UserPlus, Check, AlertCircle } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
+import apiClient from "../../services/api/client";
 
 const AddFaculty = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,9 +48,8 @@ const AddFaculty = () => {
 
   const fetchDeanSuggestions = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
-      if (!response.ok) throw new Error('Failed to fetch faculty data');
-      const data = await response.json();
+      const response = await apiClient.get("/all-faculties");
+      const data = response.data;
       
       // Extract the data property from the response
       const facultyList = data.data || [];
@@ -96,29 +96,58 @@ const AddFaculty = () => {
     }
   };
 
+  const validateForm = (payload) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const idRegex = /^[A-Za-z0-9._-]{3,}$/;
+
+    if (!payload._id || !idRegex.test(payload._id.trim())) {
+      return "Please enter a valid User ID (letters/numbers, min 3 chars).";
+    }
+    if (!payload.name.trim()) {
+      return "Name is required.";
+    }
+    if (!payload.dept) {
+      return "Department is required.";
+    }
+    if (!payload.desg) {
+      return "Role is required.";
+    }
+    if (!payload.role) {
+      return "Designation is required.";
+    }
+    if (!payload.mail || !emailRegex.test(payload.mail.trim())) {
+      return "Please enter a valid email.";
+    }
+    if (!payload.mob || payload.mob.length !== 10) {
+      return "Mobile number must be 10 digits.";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null); // Clear any previous errors
+    const trimmedData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value])
+    );
+
+    const validationError = validateForm(trimmedData);
+    if (validationError) {
+      setError(validationError);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json(); // Parse JSON response
-
-      if (!response.ok) {
-        // Use the error message from the API if available
-        throw new Error(data.error || "Failed to add faculty member");
-      }
+      const response = await apiClient.post("/users", trimmedData);
 
       setSuccessMessage("Faculty member added successfully");
       resetForm();
       setShowSuccessDialog(true);
     } catch (err) {
-      setError(err.message);
+      const message = err?.response?.data?.error || err.message || "Failed to add faculty member";
+      setError(message);
       // Scroll to the error message
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {

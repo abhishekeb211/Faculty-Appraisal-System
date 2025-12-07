@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../../services/api/client";
 
 const FacultyEvaluationForm = () => {
   const location = useLocation();
@@ -38,12 +38,11 @@ const FacultyEvaluationForm = () => {
 
       if (!department || !userId) {
         console.error("Department or User ID is missing");
+        navigate("/hod/faculty-forms-list");
         return;
       }
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`
-      );
+      const response = await apiClient.get(`/${department}/${userId}/D`);
       const data = response.data || {};
 
       setPortfolioData(data);
@@ -80,8 +79,9 @@ const FacultyEvaluationForm = () => {
       fetchPortfolioData();
     } else {
       console.warn("Faculty information is incomplete");
+      navigate("/hod/faculty-forms-list");
     }
-  }, [faculty?.id, faculty?.department]); // Add specific dependencies
+  }, [faculty?.id, faculty?.department, navigate]); // Add specific dependencies
 
   // Calculate total score based on portfolio type
   const calculateTotalScore = () => {

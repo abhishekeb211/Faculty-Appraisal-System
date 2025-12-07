@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import ErrorFallback from './ErrorFallback';
+import { reportError } from '../utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -46,10 +47,7 @@ class ErrorBoundary extends Component<Props, State> {
       this.props.onError(error, errorInfo);
     }
 
-    // TODO: Send to error reporting service in production
-    // if (import.meta.env.PROD) {
-    //   Sentry.captureException(error, { extra: errorInfo });
-    // }
+    reportError(error, 'ErrorBoundary', { errorInfo });
   }
 
   handleReset = () => {

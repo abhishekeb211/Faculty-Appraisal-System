@@ -9,19 +9,27 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+const getStoredUserData = (): Record<string, any> | null => {
+  try {
+    const raw = localStorage.getItem('userData');
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error('Error parsing userData:', error);
+    return null;
+  }
+};
+
 // Request interceptor
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // Add auth token if available
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        // Add token to headers if backend requires it
-        // config.headers.Authorization = `Bearer ${parsed.token}`;
-      } catch (error) {
-        console.error('Error parsing userData:', error);
-      }
+    const userData = getStoredUserData();
+    const token = userData?.token;
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
     }
     return config;
   },
@@ -47,7 +55,9 @@ apiClient.interceptors.response.use(
     // Handle 401 Unauthorized - redirect to login
     if (error.response.status === 401) {
       localStorage.removeItem('userData');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       return Promise.reject(error);
     }
 

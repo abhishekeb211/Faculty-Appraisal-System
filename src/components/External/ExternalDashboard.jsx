@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+import apiClient from "../../services/api/client";
 import {
   User,
   ArrowRight,
@@ -25,21 +25,25 @@ const ExternalDashboard = () => {
 
   // Initialize user data from localStorage
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (userData) {
-      setExternalId(userData._id);
-      setDepartment(userData.dept);
-      // You can also update externalInfo here if needed
-      setExternalInfo({
-        full_name: userData.name,
-        organization: userData.organization || "",
-        dept: userData.dept,
-        desg: userData.desg
-      });
-    } else {
-      // Handle case when user is not logged in
+    try {
+      const raw = localStorage.getItem('userData');
+      const userData = raw ? JSON.parse(raw) : null;
+      if (userData?._id && userData?.dept) {
+        setExternalId(userData._id);
+        setDepartment(userData.dept);
+        setExternalInfo({
+          full_name: userData.name,
+          organization: userData.organization || "",
+          dept: userData.dept,
+          desg: userData.desg
+        });
+      } else {
+        throw new Error("Missing session data");
+      }
+    } catch (err) {
       setError("User not logged in or session expired");
       toast.error("Please log in again");
+      // Optional: redirect to login
     }
   }, []);
 
@@ -64,7 +68,7 @@ const ExternalDashboard = () => {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/${department}/external-assignments/${externalId}`);
+      const response = await apiClient.get(`/${department}/external-assignments/${externalId}`);
       
       if (response.data && response.data.data) {
         // Set assigned faculty

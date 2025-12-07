@@ -90,10 +90,22 @@ export function logError(error: unknown, context?: string): void {
     console.error('Error logged:', errorInfo);
   }
 
-  // TODO: Integrate with error reporting service (e.g., Sentry)
-  // if (import.meta.env.PROD) {
-  //   Sentry.captureException(error, { extra: { context } });
-  // }
+  reportError(error, context);
+}
+
+/**
+ * Send error to reporting service (stub for Sentry/others)
+ */
+export function reportError(error: unknown, context?: string, extra?: Record<string, unknown>): void {
+  // In production, integrate with your monitoring tool (e.g., Sentry)
+  if (import.meta.env.PROD && typeof window !== 'undefined' && (window as any).Sentry) {
+    (window as any).Sentry.captureException(error instanceof Error ? error : new Error(String(error)), {
+      extra: { context, ...extra },
+    });
+    return;
+  }
+
+  // Fallback: no-op in production if Sentry not present; console in dev is already handled above
 }
 
 /**
