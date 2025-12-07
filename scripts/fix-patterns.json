@@ -1,0 +1,63 @@
+{
+  "patterns": {
+    "consoleLogReplacement": {
+      "enabled": true,
+      "pattern": "console\\.(log|debug|info|warn|error)\\s*\\(",
+      "replacement": {
+        "production": "// Removed console statement",
+        "development": "console.$1(",
+        "utility": "logError"
+      },
+      "fileExtensions": [".js", ".jsx", ".ts", ".tsx"]
+    },
+    "importOrganization": {
+      "enabled": true,
+      "rules": {
+        "externalFirst": true,
+        "internalSecond": true,
+        "relativeLast": true,
+        "alphabetical": true
+      }
+    },
+    "codeFormatting": {
+      "enabled": true,
+      "tools": ["prettier"],
+      "config": ".prettierrc"
+    },
+    "linting": {
+      "enabled": true,
+      "tools": ["eslint"],
+      "autoFix": true,
+      "extensions": [".js", ".jsx", ".ts", ".tsx"]
+    },
+    "unusedImports": {
+      "enabled": true,
+      "remove": true
+    },
+    "typeAnnotations": {
+      "enabled": false,
+      "strict": false,
+      "files": [".ts", ".tsx"]
+    }
+  },
+  "safety": {
+    "backupBeforeFix": true,
+    "dryRunMode": false,
+    "requireApproval": false,
+    "maxFilesPerRun": 100,
+    "excludedPaths": [
+      "node_modules",
+      "dist",
+      "build",
+      ".git",
+      "coverage",
+      "reports"
+    ]
+  },
+  "notifications": {
+    "enabled": false,
+    "onError": true,
+    "onSuccess": false,
+    "channels": []
+  }
+}

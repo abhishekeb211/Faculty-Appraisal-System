@@ -40,3 +40,10 @@ Thumbs.db
 # Build outputs
 build
 *.tsbuildinfo
+
+# Automation system
+reports/*.log
+reports/*.html
+reports/*.json
+!reports/.gitkeep
+.backups/

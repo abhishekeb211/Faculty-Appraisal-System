@@ -11,7 +11,15 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "auto-fix": "node scripts/auto-fix.js",
+    "auto-fix:dry-run": "node scripts/auto-fix.js --dry-run",
+    "loop": "bash scripts/continuous-loop.sh",
+    "health-check": "bash scripts/health-check.sh",
+    "validate-deployment": "bash scripts/validate-deployment.sh",
+    "monitor": "bash scripts/monitor-health.sh",
+    "status-report": "bash scripts/generate-status-report.sh",
+    "watch-fix": "bash scripts/watch-and-fix.sh"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.4",
