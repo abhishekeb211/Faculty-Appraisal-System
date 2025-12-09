@@ -1,8 +1,15 @@
+import os
+import sys
+
+# Fix Windows console encoding issues
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-import os
-import sys
 import traceback
 
 # Load environment variables
@@ -29,15 +36,21 @@ db = None  # Initialize as None first
 @app.route('/')
 def health_check():
     global db
-    if db is None:
-        db = get_db()
-    
-    return jsonify({
-        "status": "online",
-        "message": "Faculty Appraisal System Backend API",
-        "version": "1.0.0",
-        "mongodb": "connected" if db else "disconnected"
-    })
+    try:
+        if db is None:
+            db = get_db()
+        
+        return jsonify({
+            "status": "online",
+            "message": "Faculty Appraisal System Backend API",
+            "version": "1.0.0",
+            "mongodb": "connected" if db is not None else "disconnected"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 # Import routes after app is configured
 try:
@@ -52,9 +65,9 @@ try:
     app.register_blueprint(director.bp)
     app.register_blueprint(verification.bp)
     app.register_blueprint(external.bp)
-    print("All routes registered successfully")
+    print("[SUCCESS] All routes registered successfully")
 except Exception as e:
-    print(f"Error registering routes: {e}")
+    print(f"[ERROR] Error registering routes: {e}")
     traceback.print_exc()
 
 # Error handlers
@@ -68,19 +81,13 @@ def internal_error(error):
 
 if __name__ == '__main__':
     try:
-        # Get database connection - COMMENTED OUT TO TEST
-        # db = get_db()
-        # if db:
-        #     print(f"MongoDB connected successfully to: {db.name}")
-        # else:
-        #     print("MongoDB connection failed")
-        
         port = int(os.getenv('PORT', 5000))
         print(f"Starting Flask backend on port {port}")
         print(f"CORS enabled for http://localhost:5173")
+        print("MongoDB will be connected on first request")
         
         # Start Flask app
-        app.run(host='127.0.0.1', port=port, debug=False)
+        app.run(host='127.0.0.1', port=port, debug=True)
     except Exception as e:
         print(f"\nError during startup:")
         print(f"Error type: {type(e).__name__}")

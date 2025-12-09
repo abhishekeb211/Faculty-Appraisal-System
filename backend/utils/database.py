@@ -16,6 +16,6 @@ def get_db():
             # Explicitly specify the database name
             _db = client['faculty_appraisal_db']
         except Exception as e:
-            print(f"❌ MongoDB connection error: {e}")
+            print(f"[ERROR] MongoDB connection error: {e}")
             _db = None
     return _db

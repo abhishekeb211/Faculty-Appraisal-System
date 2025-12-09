@@ -45,7 +45,7 @@ const LoginPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          _id: userId,
+          userId: userId,
           password: password,
         }),
       });
@@ -394,7 +394,7 @@ const LoginPage = () => {
             <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full ${passwordStrength.score <= 2 ? "bg-red-500" :
-                    passwordStrength.score <= 4 ? "bg-yellow-500" : "bg-green-500"
+                  passwordStrength.score <= 4 ? "bg-yellow-500" : "bg-green-500"
                   } transition-all duration-300`}
                 style={{ width: `${Math.min(100, (passwordStrength.score / 5) * 100)}%` }}
               ></div>

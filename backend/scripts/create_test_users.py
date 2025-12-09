@@ -81,11 +81,11 @@ test_users = [
 
 def create_test_users():
     """Create test users with hashed passwords"""
-    print("🔧 Creating test users...")
+    print("[INFO] Creating test users...")
     
     # Clear existing test users
     db.users.delete_many({"userId": {"$in": [u["userId"] for u in test_users]}})
-    print("✅ Cleared existing test users")
+    print("[SUCCESS] Cleared existing test users")
     
     # Insert new test users
     for user in test_users:
@@ -97,10 +97,10 @@ def create_test_users():
         user["createdAt"] = datetime.now()
         
         result = db.users.insert_one(user)
-        print(f"✅ Created user: {user['userId']} (Role: {user['role']})")
+        print(f"[SUCCESS] Created user: {user['userId']} (Role: {user['role']})")
     
-    print(f"\n🎉 Successfully created {len(test_users)} test users!")
-    print("\n📋 Test Credentials:")
+    print(f"\n[SUCCESS] Successfully created {len(test_users)} test users!")
+    print("\n[INFO] Test Credentials:")
     print("-" * 50)
     for user in test_users:
         # Note: We can't print the password since it's hashed now
@@ -121,6 +121,6 @@ if __name__ == "__main__":
     try:
         create_test_users()
     except Exception as e:
-        print(f"❌ Error creating test users: {e}")
+        print(f"[ERROR] Error creating test users: {e}")
         import traceback
         traceback.print_exc()
