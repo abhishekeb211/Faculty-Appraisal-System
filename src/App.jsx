@@ -66,11 +66,19 @@ import ExternalDashboard from "./components/External/ExternalDashboard";
 
 // Protected Route component
 // eslint-disable-next-line react/prop-types
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+// eslint-disable-next-line react/prop-types
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, userRole } = useAuth();
+
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    // Redirect to dashboard if role doesn't match
+    return <Navigate to="/dashboard" />;
+  }
+
   return children;
 };
 
@@ -135,7 +143,7 @@ function AppContent() {
                   <Route
                     path="/teaching"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <TeachingPerformance />
                       </ProtectedRoute>
                     }
@@ -143,7 +151,7 @@ function AppContent() {
                   <Route
                     path="/research"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <Research />
                       </ProtectedRoute>
                     }
@@ -151,7 +159,7 @@ function AppContent() {
                   <Route
                     path="/selfdevelopment"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <SelfDevelopment />
                       </ProtectedRoute>
                     }
@@ -159,7 +167,7 @@ function AppContent() {
                   <Route
                     path="/portfolio"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <Portfolio />
                       </ProtectedRoute>
                     }
@@ -167,7 +175,7 @@ function AppContent() {
                   <Route
                     path="/extra"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <Extra />
                       </ProtectedRoute>
                     }
@@ -175,7 +183,7 @@ function AppContent() {
                   <Route
                     path="/review"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Faculty']}>
                         <Review />
                       </ProtectedRoute>
                     }
@@ -183,7 +191,7 @@ function AppContent() {
                   <Route
                     path="/hod/faculty-forms-list"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <FacultyFormsList />
                       </ProtectedRoute>
                     }
@@ -191,7 +199,7 @@ function AppContent() {
                   <Route
                     path="/hodverify"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <HODverify />
                       </ProtectedRoute>
                     }
@@ -199,7 +207,7 @@ function AppContent() {
                   <Route
                     path="/hodcnfverify"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <HODcnfverify />
                       </ProtectedRoute>
                     }
@@ -207,7 +215,7 @@ function AppContent() {
                   <Route
                     path="/hod/final-marks"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <FinalMarks />
                       </ProtectedRoute>
                     }
@@ -215,7 +223,7 @@ function AppContent() {
                   <Route
                     path="/dean/associate-dean-list"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Dean', 'Director']}>
                         <AssociateDeansList />
                       </ProtectedRoute>
                     }
@@ -224,7 +232,7 @@ function AppContent() {
                   <Route
                     path="/dean-evaluation/:department/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Dean', 'Director']}>
                         <DeanEvaluationForm />
                       </ProtectedRoute>
                     }
@@ -232,7 +240,7 @@ function AppContent() {
                   <Route
                     path="/dean/give-interaction-marks"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Dean', 'Director']}>
                         <Interactionmarks />
                       </ProtectedRoute>
                     }
@@ -241,7 +249,7 @@ function AppContent() {
                   <Route
                     path="/dean-evaluate/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Dean', 'Director']}>
                         <Interactionevaluation />
                       </ProtectedRoute>
                     }
@@ -249,7 +257,7 @@ function AppContent() {
                   <Route
                     path="/hod-evaluate/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <HODInteractionEvaluation />
                       </ProtectedRoute>
                     }
@@ -257,7 +265,7 @@ function AppContent() {
                   <Route
                     path="/paper-verification/givemarks/:department/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Verification Team']}>
                         <VerificationForm />
                       </ProtectedRoute>
                     }
@@ -265,7 +273,7 @@ function AppContent() {
                   <Route
                     path="/hod/department-review"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <VerificationPanel />
                       </ProtectedRoute>
                     }
@@ -273,7 +281,7 @@ function AppContent() {
                   <Route
                     path="/paper-verification/verify"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Verification Team']}>
                         <Verify />
                       </ProtectedRoute>
                     }
@@ -281,7 +289,7 @@ function AppContent() {
                   <Route
                     path="/hod/add-external-faculty"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <AddExternalFaculty />
                       </ProtectedRoute>
                     }
@@ -289,7 +297,7 @@ function AppContent() {
                   <Route
                     path="/hod/assign-faculty-external"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['HOD', 'Dean', 'Director']}>
                         <AssignFacultyToExternal />
                       </ProtectedRoute>
                     }
@@ -297,7 +305,7 @@ function AppContent() {
                   <Route
                     path="/external/give-marks"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['external']}>
                         <ExternalDashboard />
                       </ProtectedRoute>
                     }
@@ -305,7 +313,7 @@ function AppContent() {
                   <Route
                     path="/evaluate-faculty/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['external']}>
                         <EvaluateFacultyPage />
                       </ProtectedRoute>
                     }
@@ -313,7 +321,7 @@ function AppContent() {
                   <Route
                     path="/director/hod-forms"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <HODForms />
                       </ProtectedRoute>
                     }
@@ -321,7 +329,7 @@ function AppContent() {
                   <Route
                     path="/director/dean-forms"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <DeanForms />
                       </ProtectedRoute>
                     }
@@ -329,7 +337,7 @@ function AppContent() {
                   <Route
                     path="/director/faculty-forms"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <FacultyForms />
                       </ProtectedRoute>
                     }
@@ -337,7 +345,7 @@ function AppContent() {
                   <Route
                     path="/ConfirmVerifybyDirector"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <ConfirmDirectorVerify />
                       </ProtectedRoute>
                     }
@@ -345,7 +353,7 @@ function AppContent() {
                   <Route
                     path="/DirectorVerify"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <DirectorVerify />
                       </ProtectedRoute>
                     }
@@ -353,7 +361,7 @@ function AppContent() {
                   <Route
                     path="/director/add-external"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <AddExternal />
                       </ProtectedRoute>
                     }
@@ -361,7 +369,7 @@ function AppContent() {
                   <Route
                     path="/director/assign-external"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <AssignExternal />
                       </ProtectedRoute>
                     }
@@ -369,7 +377,7 @@ function AppContent() {
                   <Route
                     path="/director-evaluate/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <DirectorInteractionEvaluation />
                       </ProtectedRoute>
                     }
@@ -377,7 +385,7 @@ function AppContent() {
                   <Route
                     path="/director/external/give-marks"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['Director']}>
                         <CollegeExternalDashboard />
                       </ProtectedRoute>
                     }
@@ -385,39 +393,71 @@ function AppContent() {
                   <Route
                     path="/evaluate-authority/:facultyId"
                     element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['external']}>
                         <EvaluateAuthoritiesPage />
                       </ProtectedRoute>
                     }
                   />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route
+                    path="/admin/add-faculty"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AddFaculty />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/faculty-list"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <FacultyList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/summary"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <Summary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/verification-team"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <VerificationTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/assign-faculty-to-verification-team"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AssignFacultyToVerificationTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/assign-dean-to-department"
+                    element={
+                      <ProtectedRoute allowedRoles={['Admin']}>
+                        <AssignDeanToDepartment />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={<Navigate to="/admin/add-faculty" />}
+                  />
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
               </div>
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin/add-faculty" element={<AddFaculty />} />
-                <Route path="/admin/faculty-list" element={<FacultyList />} />
-                <Route path="/admin/summary" element={<Summary />} />
-                <Route
-                  path="/admin/verification-team"
-                  element={<VerificationTeam />}
-                />
-                <Route
-                  path="/admin/assign-faculty-to-verification-team"
-                  element={<AssignFacultyToVerificationTeam />}
-                />
-                <Route
-                  path="/admin/assign-dean-to-department"
-                  element={<AssignDeanToDepartment />}
-                />
-                <Route
-                  path="/admin"
-                  element={<Navigate to="/admin/add-faculty" />}
-                />
-
-                <Route path="" element={<FacultyFormsList />} />
+                {/* Admin routes moved to protected section */}
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>
             )}

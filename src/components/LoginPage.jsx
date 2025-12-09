@@ -35,10 +35,8 @@ const LoginPage = () => {
     setSuccess("");
     setIsLoading(true);
 
-    if (userId === "admin2025" && password === "admin2025") {
-      navigate("/admin");
-      return;
-    }
+    // Removed hardcoded admin backdoor for security
+
 
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/login`, {
@@ -240,11 +238,11 @@ const LoginPage = () => {
 
     // Calculate password strength
     let score = 0;
-    
+
     // Length check
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
-    
+
     // Complexity checks
     if (/[A-Z]/.test(password)) score += 1;
     if (/[0-9]/.test(password)) score += 1;
@@ -342,7 +340,7 @@ const LoginPage = () => {
         >
           {isLoading ? "Verifying..." : "Verify OTP"}
         </button>
-        
+
         <button
           type="button"
           onClick={handleSendOTP}
@@ -383,7 +381,7 @@ const LoginPage = () => {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
-        
+
         {/* Password strength indicator */}
         {newPassword && (
           <div className="mt-2">
@@ -394,15 +392,14 @@ const LoginPage = () => {
               </span>
             </div>
             <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className={`h-full ${
-                  passwordStrength.score <= 2 ? "bg-red-500" : 
-                  passwordStrength.score <= 4 ? "bg-yellow-500" : "bg-green-500"
-                } transition-all duration-300`}
+              <div
+                className={`h-full ${passwordStrength.score <= 2 ? "bg-red-500" :
+                    passwordStrength.score <= 4 ? "bg-yellow-500" : "bg-green-500"
+                  } transition-all duration-300`}
                 style={{ width: `${Math.min(100, (passwordStrength.score / 5) * 100)}%` }}
               ></div>
             </div>
-            
+
             {/* Password requirements */}
             <ul className="text-xs mt-2 space-y-1 text-gray-600">
               <li className={/[A-Z]/.test(newPassword) ? "text-green-600" : ""}>
@@ -440,7 +437,7 @@ const LoginPage = () => {
             disabled={isLoading}
           />
         </div>
-        
+
         {/* Password match indicator */}
         {confirmPassword && (
           <div className="mt-2 text-xs font-medium">
