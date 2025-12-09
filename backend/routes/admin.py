@@ -3,6 +3,7 @@ from bson import ObjectId
 from datetime import datetime
 import bcrypt
 from utils.database import get_db
+from utils.auth_middleware import require_auth, require_role
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -11,6 +12,8 @@ def _get_db():
     return get_db()
 
 @bp.route('/add-faculty', methods=['POST'])
+@require_auth
+@require_role(['Admin'])
 def add_faculty():
     """Add new faculty member"""
     try:
@@ -48,6 +51,8 @@ def add_faculty():
         return jsonify({"error": str(e)}), 500
 
 @bp.route('/faculty-list', methods=['GET'])
+@require_auth
+@require_role(['Admin'])
 def get_faculty_list():
     """Get list of all faculty"""
     try:
@@ -61,6 +66,8 @@ def get_faculty_list():
         return jsonify({"error": str(e)}), 500
 
 @bp.route('/summary', methods=['GET'])
+@require_auth
+@require_role(['Admin'])
 def get_summary():
     """Get system summary"""
     try:
@@ -82,6 +89,8 @@ def get_summary():
         return jsonify({"error": str(e)}), 500
 
 @bp.route('/verification-team', methods=['GET', 'POST'])
+@require_auth
+@require_role(['Admin'])
 def verification_team():
     """Get or create verification team members"""
     db = _get_db()
@@ -122,6 +131,8 @@ def verification_team():
             return jsonify({"error": str(e)}), 500
 
 @bp.route('/assign-faculty-to-verification-team', methods=['POST'])
+@require_auth
+@require_role(['Admin'])
 def assign_faculty_to_verification_team():
     """Assign faculty to verification team member"""
     try:
@@ -148,6 +159,8 @@ def assign_faculty_to_verification_team():
         return jsonify({"error": str(e)}), 500
 
 @bp.route('/assign-dean-to-department', methods=['POST'])
+@require_auth
+@require_role(['Admin'])
 def assign_dean_to_department():
     """Assign dean to department(s) for interaction evaluation"""
     try:
@@ -185,6 +198,8 @@ def assign_dean_to_department():
 
 # Additional helper endpoint for fetching all faculties
 @bp.route('/all-faculties', methods=['GET'])
+@require_auth
+@require_role(['Admin'])
 def get_all_faculties():
     """Get all faculties with basic info"""
     try:

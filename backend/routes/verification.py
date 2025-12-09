@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from utils.database import get_db
+from utils.auth_middleware import require_auth, require_role
 
 bp = Blueprint('verification', __name__)
 
@@ -8,6 +9,8 @@ def _get_db():
     return get_db()
 
 @bp.route('/faculty_to_verify/<verifier_id>', methods=['GET'])
+@require_auth
+@require_role(['Verification Team', 'Admin'])
 def get_faculty_to_verify(verifier_id):
     """Get faculty assigned to this verifier"""
     try:
@@ -21,6 +24,8 @@ def get_faculty_to_verify(verifier_id):
         return jsonify({"error": str(e)}), 500
 
 @bp.route('/<department>/<user_id>/<verifier_id>/verify-research', methods=['POST'])
+@require_auth
+@require_role(['Verification Team', 'Admin'])
 def verify_research(department, user_id, verifier_id):
     """Submit research verification"""
     try:
