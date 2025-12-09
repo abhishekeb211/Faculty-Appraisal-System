@@ -20,3 +20,4 @@ services:
       - "com.faculty-appraisal.description=Faculty Appraisal System Frontend"
       - "com.faculty-appraisal.version=1.0.0"
 
+
